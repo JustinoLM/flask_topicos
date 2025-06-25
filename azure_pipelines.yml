@@ -2,13 +2,13 @@ trigger:
 - main
 
 variables:
-  acrLoginServer: 'contenedormanual.azurecr.io'
+  acrLoginServer: 'contenedormanualflask.azurecr.io'
   imageName: 'flask-app'
   imageTag: '$(Build.BuildId)'
   resourceGroup: 'rg-mi-app'
   containerName: 'flask-app-container'
   dnsNameLabel: 'mi-flask-app'
-  acrUsername: 'contenedormanual'
+  acrUsername: 'contenedormanualflask'
   acrPassword: '$(ACR_PASSWORD)'  # This should be set as a secure variable in Azure DevOps
 
 pool:
