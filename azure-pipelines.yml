@@ -9,7 +9,7 @@ variables:
   containerName: 'flask-app-container'
   dnsNameLabel: 'mi-flask-app'
   acrUsername: 'contenedormanualflask'
-  acrPassword: '$(ACR_PASSWORD)'  # This should be set as a secure variable in Azure DevOps
+  acrPassword: '$(ACR_PASSWORD)'  
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -38,7 +38,6 @@ stages:
         tags: |
           $(imageTag)
           latest
-        containerRegistry: 'contenedormanual'  # Este valor no importa porque usamos login manual
         addPipelineData: false
         dockerRegistryEndpoint: ''
 
