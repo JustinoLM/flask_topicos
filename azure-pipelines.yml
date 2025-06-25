@@ -9,7 +9,7 @@ variables:
   containerName: 'flask-app-container'
   dnsNameLabel: 'mi-flask-app'
   acrUsername: 'contenedormanualflask'
-  acrPassword: '$(ACR_PASSWORD)'  
+  acrPassword: 'XtXQnVUWdGnCp3Va1yUpt6drXXYWKfzHubvONiWxQT+ACRAYR1b8'  
 
 pool:
   vmImage: 'ubuntu-latest'
