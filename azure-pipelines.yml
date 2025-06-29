@@ -12,7 +12,7 @@ variables:
   acrPassword: 'XtXQnVUWdGnCp3Va1yUpt6drXXYWKfzHubvONiWxQT+ACRAYR1b8'  
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: Local
 
 stages:
 - stage: Build
