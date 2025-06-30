@@ -5,7 +5,7 @@ resources:
 - repo: self
 
 variables:
-  dockerRegistryServiceConnection: 'contenedorflaskmanual'
+  dockerRegistryServiceConnection: 'contenedormanualflask'
   azureSubscription: 'ASC'
   imageRepository: 'justinolmflasktopicos'
   containerRegistry: 'contenedormanualflask.azurecr.io'
