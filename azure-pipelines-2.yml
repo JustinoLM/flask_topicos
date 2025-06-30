@@ -68,6 +68,8 @@ stages:
             --assign-identity $(managedIdentityClientId) \
             --location $(location) \
             --registry-login-server $(containerRegistry) \
+            --registry-username contenedormanualflask \
+            --registry-password XtXQnVUWdGnCp3Va1yUpt6drXXYWKfzHubvONiWxQT+ACRAYR1b8 \
             --cpu 1 \
             --memory 1.5 \
             --restart-policy Always
