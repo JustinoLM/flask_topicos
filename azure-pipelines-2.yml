@@ -1,21 +1,16 @@
-trigger:
-- main
-
-resources:
-- repo: self
-
 variables:
   dockerRegistryServiceConnection: 'fe937229-ba98-4afe-8efc-601bd6d82460'
-  azureSubscription: '84328a00-81ea-4696-bd56-a5eba46df165'
+  azureSubscription: '30c6c3a3-8d8c-490a-acb8-045aca997454'  # Subscription ID
+  resourceGroup: 'rg-mi-app'
+  location: 'eastus'
   imageRepository: 'justinolmflasktopicos'
   containerRegistry: 'contenedormanualflask.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
   dnsLabel: 'justino-api-$(Build.BuildId)'
   containerName: 'justino-container'
-  resourceGroup: 'justino-group'
-  location: 'eastus'
   port: '5000'
+  managedIdentityClientId: '34062b02-ceb9-4347-9e1c-fa0420150dfc'
 
 stages:
 - stage: Build
@@ -52,10 +47,12 @@ stages:
         scriptLocation: inlineScript
         inlineScript: |
           az group create --name $(resourceGroup) --location $(location)
+
           az container create \
             --resource-group $(resourceGroup) \
             --name $(containerName) \
             --image $(containerRegistry)/$(imageRepository):$(tag) \
             --dns-name-label $(dnsLabel) \
             --ports $(port) \
+            --assign-identity $(managedIdentityClientId) \
             --location $(location)
