@@ -13,7 +13,7 @@ variables:
   tag: '$(Build.BuildId)'
   vmImageName: 'ubuntu-latest'
   resourceGroup: 'rg-mi-app'
-  containerName: 'justino-flask-container'
+  containerName: 'flask-app-container'
   dnsLabel: 'justinolmflaskversion2'       # debe ser único en la región
   port: '80'
   location: 'eastus'
