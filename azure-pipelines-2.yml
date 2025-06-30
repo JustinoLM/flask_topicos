@@ -74,4 +74,8 @@ stages:
             --restart-policy Always `
             --os-type Linux
 
-          az container show --resource-group $(resourceGroup) --name $(containerName) --query "{FQDN:ipAddress.fqdn,State:containers[0].instanceView.currentState.state}" --output table
+          try {
+            az container show --resource-group $(resourceGroup) --name $(containerName)
+          } catch {
+            Write-Host "El contenedor no existe aún, se puede continuar."
+          }
