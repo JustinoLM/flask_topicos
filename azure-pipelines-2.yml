@@ -15,7 +15,7 @@ variables:
   resourceGroup: 'rg-mi-app'
   containerName: 'flask-app-container'
   dnsLabel: 'justinolmflaskversion2'
-  port: '5001'
+  port: '5000'
   location: 'eastus'
 
 stages:
