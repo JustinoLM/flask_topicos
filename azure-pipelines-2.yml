@@ -17,6 +17,7 @@ variables:
   dnsLabel: 'justinolmflaskversion2'       # debe ser único en la región
   port: '80'
   location: 'eastus'
+  
 
 
 stages:
