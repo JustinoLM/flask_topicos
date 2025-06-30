@@ -43,7 +43,6 @@ stages:
     pool:
       name: Local
     steps:
-
     - task: AzureCLI@2
       displayName: Deploy to ACI
       inputs:
@@ -54,24 +53,28 @@ stages:
           acrName=$(echo $(containerRegistry) | cut -d'.' -f1)
           az acr login --name $acrName
 
-
+          # Mostrar si existe el contenedor (no falla si no existe)
           az container show --resource-group $(resourceGroup) --name $(containerName) || true
-          az container delete --resource-group $(resourceGroup) --name $(containerName) --yes --no-wait
+
+          # Eliminar contenedor existente (sin --no-wait para evitar error)
+          az container delete --resource-group $(resourceGroup) --name $(containerName) --yes
+
           sleep 30
 
+          # Crear contenedor con os-type Linux y sin identidad gestionada (si no usas)
           az container create \
             --resource-group $(resourceGroup) \
             --name $(containerName) \
             --image $(containerRegistry)/$(imageRepository):$(tag) \
             --dns-name-label $(dnsLabel) \
             --ports $(port) \
-            --assign-identity $(managedIdentityClientId) \
             --location $(location) \
             --registry-login-server $(containerRegistry) \
             --registry-username contenedormanualflask \
             --registry-password XtXQnVUWdGnCp3Va1yUpt6drXXYWKfzHubvONiWxQT+ACRAYR1b8 \
             --cpu 1 \
             --memory 1.5 \
-            --restart-policy Always
+            --restart-policy Always \
+            --os-type Linux
 
           az container show --resource-group $(resourceGroup) --name $(containerName) --query "{FQDN:ipAddress.fqdn,State:containers[0].instanceView.currentState.state}" --output table
