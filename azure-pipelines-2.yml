@@ -1,35 +1,25 @@
 trigger:
 - main
 
-
 resources:
 - repo: self
 
-
 variables:
-  # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'fe937229-ba98-4afe-8efc-601bd6d82460'
   imageRepository: 'justinolmflasktopicos'
   containerRegistry: 'contenedormanualflask.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
-
-
-  # Agent VM image name
   vmImageName: 'ubuntu-latest'
-
 
 stages:
 - stage: Build
-  displayName: Build and push stage
   jobs:
   - job: Build
-    displayName: Build
     pool:
       name: Local
     steps:
     - task: Docker@2
-      displayName: Build and push an image to container registry
       inputs:
         command: buildAndPush
         repository: $(imageRepository)
@@ -38,13 +28,10 @@ stages:
         tags: |
           $(tag)
 
-
 - stage: Deploy
-  displayName: Deploy to ACI
   dependsOn: Build
   jobs:
   - job: DeployACI
-    displayName: Deploy container to Azure Container Instance
     pool:
       name: Local
     steps:
@@ -53,35 +40,21 @@ stages:
       inputs:
         azureSubscription: $(azureSubscription)
         scriptType: bash
-        scriptLocation: inlineScript
         inlineScript: |
-          echo "Checking if resource group $(resourceGroup) exists..."
-          if ! az group show --name $(resourceGroup) --output none 2>/dev/null; then
-            echo "Creating resource group $(resourceGroup)..."
-            az group create --name $(resourceGroup) --location $(location)
-          else
-            echo "Resource group $(resourceGroup) already exists"
-          fi
+          az group show --name $(resourceGroup) || az group create --name $(resourceGroup) --location $(location)
 
     - task: AzureCLI@2
-      displayName: Deploy to Azure Container Instance
+      displayName: Deploy to ACI
       inputs:
         azureSubscription: $(azureSubscription)
         scriptType: bash
-        scriptLocation: inlineScript
         inlineScript: |
-          echo "Logging into ACR..."
-          az acr login --name $(echo $(containerRegistry) | cut -d'.' -f1)
-          
-          echo "Checking for existing container..."
-          if az container show --resource-group $(resourceGroup) --name $(containerName) --output none 2>/dev/null; then
-            echo "Deleting existing container $(containerName)..."
-            az container delete --resource-group $(resourceGroup) --name $(containerName) --yes --no-wait
-            echo "Waiting for container deletion to complete..."
-            sleep 30
-          fi
-          
-          echo "Creating new container instance..."
+          az acr login --name $(containerRegistry | cut -d'.' -f1)
+
+          az container show --resource-group $(resourceGroup) --name $(containerName) || true
+          az container delete --resource-group $(resourceGroup) --name $(containerName) --yes --no-wait
+          sleep 30
+
           az container create \
             --resource-group $(resourceGroup) \
             --name $(containerName) \
@@ -94,7 +67,5 @@ stages:
             --cpu 1 \
             --memory 1.5 \
             --restart-policy Always
-          
-          echo "Container created successfully!"
-          echo "Getting container details..."
+
           az container show --resource-group $(resourceGroup) --name $(containerName) --query "{FQDN:ipAddress.fqdn,State:containers[0].instanceView.currentState.state}" --output table
