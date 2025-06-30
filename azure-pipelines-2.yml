@@ -44,7 +44,9 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
-          az acr login --name $(containerRegistry | cut -d'.' -f1)
+          acrName=$(echo $(containerRegistry) | cut -d'.' -f1)
+          az acr login --name $acrName
+
 
           az container show --resource-group $(resourceGroup) --name $(containerName) || true
           az container delete --resource-group $(resourceGroup) --name $(containerName) --yes --no-wait
