@@ -1,5 +1,10 @@
 trigger:
-  - main
+- main
+
+
+resources:
+- repo: self
+
 
 variables:
   dockerRegistryServiceConnection: 'fe937229-ba98-4afe-8efc-601bd6d82460'
