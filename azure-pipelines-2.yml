@@ -47,7 +47,7 @@ stages:
       displayName: Deploy to ACI
       inputs:
         azureSubscription: $(azureSubscription)
-        scriptType: bash
+        scriptType: ps
         scriptLocation: inlineScript
         inlineScript: |
           acrName=$(echo $(containerRegistry) | cut -d'.' -f1)
