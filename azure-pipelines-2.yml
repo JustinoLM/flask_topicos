@@ -1,14 +1,13 @@
 trigger:
 - main
 
-
 resources:
 - repo: self
 
-
 variables:
   dockerRegistryServiceConnection: 'fe937229-ba98-4afe-8efc-601bd6d82460'
-  azureSubscription: '30c6c3a3-8d8c-490a-acb8-045aca997454'  # Subscription ID
+  azureSubscription: 'ASC'  
+  subscriptionId: '30c6c3a3-8d8c-490a-acb8-045aca997454'
   resourceGroup: 'rg-mi-app'
   location: 'eastus'
   imageRepository: 'justinolmflasktopicos'
@@ -49,18 +48,39 @@ stages:
       name: Local
     steps:
     - task: AzureCLI@2
+      displayName: Ensure Resource Group Exists
       inputs:
         azureSubscription: $(azureSubscription)
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
-          # Si ya existe el grupo, comentar esta línea
-          # az group create --name $(resourceGroup) --location $(location)
+          echo "Checking if resource group $(resourceGroup) exists..."
+          if ! az group show --name $(resourceGroup) --output none 2>/dev/null; then
+            echo "Creating resource group $(resourceGroup)..."
+            az group create --name $(resourceGroup) --location $(location)
+          else
+            echo "Resource group $(resourceGroup) already exists"
+          fi
 
-          # Borrar contenedor anterior (ignorar error si no existe)
-          az container delete --resource-group $(resourceGroup) --name $(containerName) --yes --no-wait || true
-
-          # Crear el contenedor con identidad gestionada para autenticar al ACR
+    - task: AzureCLI@2
+      displayName: Deploy to Azure Container Instance
+      inputs:
+        azureSubscription: $(azureSubscription)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          echo "Logging into ACR..."
+          az acr login --name $(echo $(containerRegistry) | cut -d'.' -f1)
+          
+          echo "Checking for existing container..."
+          if az container show --resource-group $(resourceGroup) --name $(containerName) --output none 2>/dev/null; then
+            echo "Deleting existing container $(containerName)..."
+            az container delete --resource-group $(resourceGroup) --name $(containerName) --yes --no-wait
+            echo "Waiting for container deletion to complete..."
+            sleep 30
+          fi
+          
+          echo "Creating new container instance..."
           az container create \
             --resource-group $(resourceGroup) \
             --name $(containerName) \
@@ -68,4 +88,12 @@ stages:
             --dns-name-label $(dnsLabel) \
             --ports $(port) \
             --assign-identity $(managedIdentityClientId) \
-            --location $(location)
+            --location $(location) \
+            --registry-login-server $(containerRegistry) \
+            --cpu 1 \
+            --memory 1.5 \
+            --restart-policy Always
+          
+          echo "Container created successfully!"
+          echo "Getting container details..."
+          az container show --resource-group $(resourceGroup) --name $(containerName) --query "{FQDN:ipAddress.fqdn,State:containers[0].instanceView.currentState.state}" --output table
