@@ -14,11 +14,9 @@ variables:
   vmImageName: 'ubuntu-latest'
   resourceGroup: 'rg-mi-app'
   containerName: 'flask-app-container'
-  dnsLabel: 'justinolmflaskversion2'       # debe ser único en la región
+  dnsLabel: 'justinolmflaskversion2'
   port: '5001'
   location: 'eastus'
-  
-
 
 stages:
 - stage: Build
@@ -53,7 +51,11 @@ stages:
           $acrName = "$(containerRegistry)".Split('.')[0]
           az acr login --name $acrName
 
-          az container show --resource-group $(resourceGroup) --name $(containerName) || $true
+          try {
+            az container show --resource-group $(resourceGroup) --name $(containerName)
+          } catch {
+            Write-Host "Contenedor no encontrado, se procederá con la creación."
+          }
 
           az container delete --resource-group $(resourceGroup) --name $(containerName) --yes
 
@@ -74,8 +76,4 @@ stages:
             --restart-policy Always `
             --os-type Linux
 
-          try {
-            az container show --resource-group $(resourceGroup) --name $(containerName)
-          } catch {
-            Write-Host "El contenedor no existe aún, se puede continuar."
-          }
+          az container show --resource-group $(resourceGroup) --name $(containerName) --query "{FQDN:ipAddress.fqdn,State:containers[0].instanceView.currentState.state}" --output table
