@@ -1,35 +1,35 @@
 trigger:
 - main
 
+
 resources:
 - repo: self
 
+
 variables:
+  # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'fe937229-ba98-4afe-8efc-601bd6d82460'
-  azureSubscription: 'ASC'  
-  subscriptionId: '30c6c3a3-8d8c-490a-acb8-045aca997454'
-  resourceGroup: 'rg-mi-app'
-  location: 'eastus'
   imageRepository: 'justinolmflasktopicos'
   containerRegistry: 'contenedormanualflask.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
-  dnsLabel: 'justino-api-$(Build.BuildId)'
-  containerName: 'justino-container'
-  port: '5000'
-  managedIdentityClientId: '34062b02-ceb9-4347-9e1c-fa0420150dfc'
+
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
 
 stages:
 - stage: Build
-  displayName: Build and Push
+  displayName: Build and push stage
   jobs:
   - job: Build
-    displayName: Build Image and Push to ACR
+    displayName: Build
     pool:
       name: Local
     steps:
     - task: Docker@2
-      displayName: Build and push Docker image
+      displayName: Build and push an image to container registry
       inputs:
         command: buildAndPush
         repository: $(imageRepository)
@@ -37,6 +37,7 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+
 
 - stage: Deploy
   displayName: Deploy to ACI
