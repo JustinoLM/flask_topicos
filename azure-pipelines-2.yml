@@ -1,3 +1,6 @@
+trigger:
+  - main
+
 variables:
   dockerRegistryServiceConnection: 'fe937229-ba98-4afe-8efc-601bd6d82460'
   azureSubscription: '30c6c3a3-8d8c-490a-acb8-045aca997454'  # Subscription ID
@@ -14,15 +17,15 @@ variables:
 
 stages:
 - stage: Build
-  displayName: Build and push stage
+  displayName: Build and Push
   jobs:
   - job: Build
-    displayName: Build
+    displayName: Build Image and Push to ACR
     pool:
       name: Local
     steps:
     - task: Docker@2
-      displayName: Build and push an image to container registry
+      displayName: Build and push Docker image
       inputs:
         command: buildAndPush
         repository: $(imageRepository)
@@ -32,11 +35,11 @@ stages:
           $(tag)
 
 - stage: Deploy
-  displayName: Deploy to Azure Container Instance
+  displayName: Deploy to ACI
   dependsOn: Build
   jobs:
   - job: DeployACI
-    displayName: Deploy to ACI
+    displayName: Deploy container to Azure Container Instance
     pool:
       name: Local
     steps:
@@ -46,8 +49,13 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
-          az group create --name $(resourceGroup) --location $(location)
+          # Si ya existe el grupo, comentar esta línea
+          # az group create --name $(resourceGroup) --location $(location)
 
+          # Borrar contenedor anterior (ignorar error si no existe)
+          az container delete --resource-group $(resourceGroup) --name $(containerName) --yes --no-wait || true
+
+          # Crear el contenedor con identidad gestionada para autenticar al ACR
           az container create \
             --resource-group $(resourceGroup) \
             --name $(containerName) \
